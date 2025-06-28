@@ -6,8 +6,8 @@
  * MIT Licensed
  */
 
-var optimist = require('optimist'),
-    myArgs = optimist
+var yargs = require('yargs'),
+    myArgs = yargs(process.argv.slice(2))
     .usage('MQTT/WebSocket Bridge\nUsage: $0')
     .alias({
         'p': 'port',
@@ -26,6 +26,7 @@ var optimist = require('optimist'),
         'c': 'Configuration file',
         'help': 'Show this help'
     })
+    .help('help')
     .argv,
     url = require('url'),
     util = require('util'),
@@ -34,10 +35,7 @@ var optimist = require('optimist'),
     logger = log4js.getLogger(),
     mqttws = require('../lib/mqtt-ws');
 
-if (myArgs.help) {
-    optimist.showHelp();
-    process.exit(0);
-}
+// Help is now handled automatically by yargs with .help('help')
 
 // If we are given a config file, parse that,
 // otherwise just parse command line

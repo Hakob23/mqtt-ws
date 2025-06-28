@@ -18,10 +18,10 @@
     "errno": "*",
     "log4js": "*",
     "mqtt": "*",
-    "optimist": "*",
     "options": ">=0.0.5",
     "underscore": "*",
-    "ws": "*"
+    "ws": "*",
+    "yargs": "^18.0.0"
   },
   "engines": {
     "node": ">=0.4.0"
@@ -38,7 +38,6 @@
     "doc": "doc",
     "example": "example"
   },
-  "devDependencies": {},
   "gitHead": "a30ac1a692b869b50c6ea56679618e61eaeec8b4",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
