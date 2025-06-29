@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MQTT-WebSocket Bridge Test Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .messages { 
+            height: 300px; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            overflow-y: scroll; 
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+        }
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: inline-block; width: 100px; }
+        .input-group input { width: 300px; padding: 5px; }
+        button { padding: 8px 16px; margin: 5px; }
+        .connected { color: green; }
+        .disconnected { color: red; }
+        .received { color: blue; }
+        .sent { color: purple; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MQTT-WebSocket Bridge Test Client</h1>
+        
+        <div class="input-group">
+            <label>WebSocket URL:</label>
+            <input type="text" id="urlInput" value="ws://localhost:8080/test/topic" placeholder="ws://host:port/topic">
+            <button onclick="connect()">Connect</button>
+            <button onclick="disconnect()">Disconnect</button>
+        </div>
+        
+        <div class="input-group">
+            <label>Status:</label>
+            <span id="status" class="disconnected">Disconnected</span>
+        </div>
+        
+        <div class="messages" id="messages">
+            <div>Messages will appear here...</div>
+        </div>
+        
+        <div class="input-group">
+            <label>Send Message:</label>
+            <input type="text" id="messageInput" placeholder="Enter message to publish">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        
+        <div class="input-group">
+            <button onclick="clearMessages()">Clear Messages</button>
+        </div>
+        
+        <h2>Instructions:</h2>
+        <ul>
+            <li>Start the MQTT-WebSocket bridge: <code>node bin/mqttwsBridge.js -l 8080</code></li>
+            <li>Connect to a topic by entering the WebSocket URL above</li>
+            <li>Send messages that will be published to the MQTT topic</li>
+            <li>Messages published to the MQTT topic will appear in the messages area</li>
+            <li>Try wildcard topics like: <code>ws://localhost:8080/%23</code> (all topics)</li>
+        </ul>
+    </div>
+
+    <script>
+        let ws = null;
+        const messages = document.getElementById('messages');
+        const status = document.getElementById('status');
+
+        function addMessage(message, className = '') {
+            const div = document.createElement('div');
+            div.className = className;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function connect() {
+            const url = document.getElementById('urlInput').value;
+            
+            if (ws) {
+                ws.close();
+            }
+
+            try {
+                ws = new WebSocket(url);
+                
+                ws.onopen = function() {
+                    status.textContent = 'Connected';
+                    status.className = 'connected';
+                    addMessage('Connected to ' + url, 'connected');
+                };
+
+                ws.onmessage = function(event) {
+                    addMessage('Received: ' + event.data, 'received');
+                };
+
+                ws.onclose = function() {
+                    status.textContent = 'Disconnected';
+                    status.className = 'disconnected';
+                    addMessage('Connection closed', 'disconnected');
+                };
+
+                ws.onerror = function(error) {
+                    addMessage('Error: ' + error, 'disconnected');
+                };
+
+            } catch (error) {
+                addMessage('Connection error: ' + error, 'disconnected');
+            }
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(message);
+                addMessage('Sent: ' + message, 'sent');
+                input.value = '';
+            } else if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addMessage('Error: Not connected', 'disconnected');
+            }
+        }
+
+        function clearMessages() {
+            messages.innerHTML = '<div>Messages cleared...</div>';
+        }
+
+        // Allow Enter key to send messages
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Allow Enter key to connect
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                connect();
+            }
+        });
+    </script>
+</body>
+</html> 

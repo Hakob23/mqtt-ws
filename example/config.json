@@ -1,22 +1,30 @@
 {
     "mqtt": {
-        "host": "mqttHost",
+        "host": "localhost",
         "port": 1883
     },
     "websocket": {
-        "port": 8080
+        "port": 8080,
+        "ssl_key": "server-key.pem",
+        "ssl_cert": "server-cert.pem"
     },
     "log4js": {
-  		"appenders": [
-		      {
-		          "type": "console"
-		      },
-		      {
-		          "type": "file",
-		          "filename": "mqttwsBridge.log",
-		          "maxLogSize": 1024,
-		          "backups": 3
-		      }
-		 ]
+        "appenders": {
+            "console": {
+                "type": "console"
+            },
+            "file": {
+                "type": "file",
+                "filename": "mqttwsBridge.log",
+                "maxLogSize": 1024,
+                "backups": 3
+            }
+        },
+        "categories": {
+            "default": {
+                "appenders": ["console", "file"],
+                "level": "info"
+            }
+        }
     }
 }

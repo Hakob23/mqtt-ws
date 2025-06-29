@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MQTT-WebSocket Bridge Client</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; }
+        .messages { 
+            border: 1px solid #ccc; 
+            height: 300px; 
+            overflow-y: scroll; 
+            padding: 10px; 
+            background: #f9f9f9; 
+            margin: 10px 0;
+        }
+        input, button { margin: 5px; padding: 5px; }
+        .status { font-weight: bold; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MQTT-WebSocket Bridge Client</h1>
+        
+        <div>
+            <label>Topic: </label>
+            <input type="text" id="topic" value="test/topic" placeholder="Enter MQTT topic">
+            <button onclick="connect()">Connect</button>
+            <button onclick="disconnect()">Disconnect</button>
+        </div>
+        
+        <div class="status" id="status">Disconnected</div>
+        
+        <div class="messages" id="messages"></div>
+        
+        <div>
+            <input type="text" id="messageInput" placeholder="Enter message to send" style="width: 400px;">
+            <button onclick="sendMessage()">Send Message</button>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let currentTopic = '';
+
+        function log(message) {
+            const messages = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function updateStatus(status) {
+            document.getElementById('status').textContent = status;
+        }
+
+        function connect() {
+            const topic = document.getElementById('topic').value;
+            if (!topic) {
+                alert('Please enter a topic');
+                return;
+            }
+
+            if (ws) {
+                ws.close();
+            }
+
+            // Note: For self-signed certificates, you might need to accept the certificate first
+            // by visiting https://localhost:8080 in your browser
+            const wsUrl = `wss://localhost:8080/${encodeURIComponent(topic)}`;
+            
+            log(`Connecting to ${wsUrl}...`);
+            updateStatus('Connecting...');
+
+            ws = new WebSocket(wsUrl);
+            currentTopic = topic;
+
+            ws.onopen = function() {
+                log('✅ Connected to WebSocket bridge');
+                updateStatus('Connected');
+            };
+
+            ws.onmessage = function(event) {
+                // The bridge sends messages in format: "topic|message"
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const arrayBuffer = reader.result;
+                    const view = new DataView(arrayBuffer);
+                    
+                    // Parse the topic (UTF-16LE encoded, terminated by |)
+                    let topicBytes = '';
+                    let offset = 0;
+                    while (offset < arrayBuffer.byteLength - 1) {
+                        const char = String.fromCharCode(view.getUint16(offset, true));
+                        if (char === '|') {
+                            offset += 2;
+                            break;
+                        }
+                        topicBytes += char;
+                        offset += 2;
+                    }
+                    
+                    // The rest is the message
+                    const messageBytes = new Uint8Array(arrayBuffer, offset);
+                    const message = new TextDecoder().decode(messageBytes);
+                    
+                    log(`📥 Received on topic "${topicBytes}": ${message}`);
+                };
+                reader.readAsArrayBuffer(event.data);
+            };
+
+            ws.onclose = function() {
+                log('❌ WebSocket connection closed');
+                updateStatus('Disconnected');
+            };
+
+            ws.onerror = function(error) {
+                log(`❌ WebSocket error: ${error}`);
+                updateStatus('Error');
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value;
+            
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('Not connected to WebSocket');
+                return;
+            }
+            
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+
+            // Format: "topic|message" where topic is UTF-16LE encoded
+            const topicBuffer = new TextEncoder().encode(currentTopic + '|');
+            const messageBuffer = new TextEncoder().encode(message);
+            
+            // Convert topic to UTF-16LE
+            const topicUtf16 = new ArrayBuffer(currentTopic.length * 2 + 2); // +2 for the | character
+            const topicView = new DataView(topicUtf16);
+            for (let i = 0; i < currentTopic.length; i++) {
+                topicView.setUint16(i * 2, currentTopic.charCodeAt(i), true);
+            }
+            topicView.setUint16(currentTopic.length * 2, '|'.charCodeAt(0), true);
+            
+            // Combine topic and message
+            const combined = new Uint8Array(topicUtf16.byteLength + messageBuffer.byteLength);
+            combined.set(new Uint8Array(topicUtf16), 0);
+            combined.set(messageBuffer, topicUtf16.byteLength);
+            
+            ws.send(combined);
+            log(`📤 Sent to topic "${currentTopic}": ${message}`);
+            messageInput.value = '';
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html> 
