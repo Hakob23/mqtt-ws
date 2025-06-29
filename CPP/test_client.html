@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>C++ MQTT-WS Bridge Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .error { background-color: #fff3cd; color: #856404; }
+        #messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1> C++ MQTT-WebSocket Bridge Test Client</h1>
+    
+    <div id="status" class="status disconnected">Disconnected</div>
+    
+    <div>
+        <button onclick="connect()">Connect to C++ Bridge</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <button onclick="clearMessages()">Clear Messages</button>
+    </div>
+    
+    <div>
+        <input type="text" id="topicInput" placeholder="Topic (e.g., test/topic)" value="test/topic">
+        <input type="text" id="messageInput" placeholder="Message">
+        <button onclick="sendMessage()">Send Message</button>
+    </div>
+    
+    <div id="messages"></div>
+
+    <script>
+        let ws = null;
+        let isConnected = false;
+        
+        const statusDiv = document.getElementById('status');
+        const messagesDiv = document.getElementById('messages');
+        
+        function updateStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            addMessage(`[STATUS] ${message}`, 'info');
+        }
+        
+        function addMessage(message, type = 'normal') {
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.innerHTML = `<span style="color: #666;">[${timestamp}]</span> ${message}`;
+            if (type === 'error') div.style.color = 'red';
+            if (type === 'info') div.style.color = 'blue';
+            if (type === 'success') div.style.color = 'green';
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function connect() {
+            if (isConnected) {
+                addMessage('Already connected!', 'error');
+                return;
+            }
+            
+                         try {
+                 // Connect to C++ bridge with WS (non-secure WebSocket for testing)
+                 ws = new WebSocket('ws://localhost:8080/test/topic');
+                
+                ws.onopen = function(event) {
+                    isConnected = true;
+                    updateStatus('Connected to C++ Bridge', 'connected');
+                    addMessage('Connected to C++ MQTT-WebSocket Bridge!', 'success');
+                };
+                
+                ws.onmessage = function(event) {
+                    addMessage(`Received: ${event.data}`, 'success');
+                };
+                
+                ws.onclose = function(event) {
+                    isConnected = false;
+                    updateStatus('Disconnected', 'disconnected');
+                    addMessage(`Connection closed (Code: ${event.code})`, 'info');
+                };
+                
+                ws.onerror = function(event) {
+                    addMessage('WebSocket error occurred', 'error');
+                    console.error('WebSocket error:', event);
+                };
+                
+            } catch (error) {
+                addMessage(`❌ Connection failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function disconnect() {
+            if (ws && isConnected) {
+                ws.close();
+                addMessage('Disconnecting...', 'info');
+            } else {
+                addMessage('Not connected!', 'error');
+            }
+        }
+        
+        function sendMessage() {
+            if (!isConnected || !ws) {
+                addMessage('❌ Not connected to bridge!', 'error');
+                return;
+            }
+            
+            const topic = document.getElementById('topicInput').value;
+            const message = document.getElementById('messageInput').value;
+            
+            if (!topic || !message) {
+                addMessage('❌ Please enter both topic and message', 'error');
+                return;
+            }
+            
+            try {
+                // Send message in the format expected by the bridge
+                const payload = topic + '|' + message;
+                ws.send(payload);
+                addMessage(`Sent to ${topic}: ${message}`, 'info');
+                document.getElementById('messageInput').value = '';
+            } catch (error) {
+                addMessage(`Send failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearMessages() {
+            messagesDiv.innerHTML = '';
+        }
+        
+        // Auto-connect on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            addMessage('C++ Bridge Test Client loaded', 'info');
+            addMessage('Click "Connect to C++ Bridge" to start testing', 'info');
+        });
+    </script>
+</body>
+</html> 

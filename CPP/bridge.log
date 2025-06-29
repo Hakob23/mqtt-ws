@@ -1,0 +1,40 @@
+nohup: ignoring input
+=== MQTT-WebSocket Bridge (C++) ===
+Optimized for Linux with zero-copy message handling
+================================================================
+🔧 Initializing MQTT-WebSocket Bridge...
+   MQTT Broker: localhost:1883
+   WebSocket Port: 8080
+   Worker Threads: 8
+🚀 Initializing bridge components...
+✅ WebSocket server initialized
+✅ Bridge initialization complete
+🌐 Starting WebSocket server on port 8080
+✅ Bridge started successfully!
+🔄 Main worker thread started (ID: 125212360169024)
+📊 Monitoring connections...
+
+🚀 Bridge is running! Press Ctrl+C to stop.
+🌐 Network connection filter
+🔗 HTTP connection filter
+📡 HTTP request for: /
+🌐 Network connection filter
+📱 New WebSocket connection established
+❌ Failed to initialize connection for topic: test/topic
+📨 Message received (37 bytes)
+🔌 WebSocket connection closed
+🌐 Network connection filter
+📱 New WebSocket connection established
+❌ Failed to initialize connection for topic: test/topic
+📨 Message received (14 bytes)
+🔌 WebSocket connection closed
+🌐 Network connection filter
+📱 New WebSocket connection established
+❌ Failed to initialize connection for topic: test/topic
+
+Received signal 15, shutting down gracefully...
+
+🛑 Stopping bridge...
+🏁 Main worker thread finished (ID: 125212360169024)
+✅ Bridge stopped gracefully
+🔌 WebSocket connection closed

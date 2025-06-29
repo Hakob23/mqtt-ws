@@ -4,9 +4,7 @@
         "port": 1883
     },
     "websocket": {
-        "port": 8080,
-        "ssl_key": "../server-key.pem",
-        "ssl_cert": "../server-cert.pem"
+        "port": 8080
     },
     "log4js": {
         "appenders": {
@@ -27,4 +25,4 @@
             }
         }
     }
-}
+} 

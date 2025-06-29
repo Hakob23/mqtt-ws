@@ -12,8 +12,8 @@ INC_DIR = include
 BIN_DIR = bin
 OBJ_DIR = build
 
-# Source files
-SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
+# Source files (exclude demo.cpp from main build)
+SOURCES = $(filter-out $(SRC_DIR)/demo.cpp, $(wildcard $(SRC_DIR)/*.cpp))
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 # Target binary
@@ -52,7 +52,10 @@ clean:
 run: $(TARGET)
 	./$(TARGET) -c ../example/config.json
 
-
+# Build and run simple demo
+demo: $(OBJ_DIR)/demo.o | $(BIN_DIR)
+	$(CXX) $(OBJ_DIR)/demo.o -o $(BIN_DIR)/demo
+	./$(BIN_DIR)/demo
 
 # Debug build
 debug: CXXFLAGS += -g -DDEBUG -O0
