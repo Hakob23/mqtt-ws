@@ -14,7 +14,8 @@ OBJ_DIR = build
 
 # Source files (exclude demo.cpp from main build)
 SOURCES = $(filter-out $(SRC_DIR)/demo.cpp, $(wildcard $(SRC_DIR)/*.cpp))
-OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+THERMAL_SOURCES = ../../ThermalIsolationTracker.cpp
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o) $(OBJ_DIR)/ThermalIsolationTracker.o
 
 # Target binary
 TARGET = $(BIN_DIR)/mqtt_ws_bridge
@@ -38,6 +39,10 @@ $(TARGET): $(OBJECTS) | $(BIN_DIR)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
+# Compile ThermalIsolationTracker
+$(OBJ_DIR)/ThermalIsolationTracker.o: $(THERMAL_SOURCES) | $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
 # Install dependencies (Ubuntu/Debian)
 deps:
 	sudo apt update
@@ -56,6 +61,14 @@ run: $(TARGET)
 demo: $(OBJ_DIR)/demo.o | $(BIN_DIR)
 	$(CXX) $(OBJ_DIR)/demo.o -o $(BIN_DIR)/demo
 	./$(BIN_DIR)/demo
+
+# Build thermal system test
+test-thermal: $(OBJ_DIR)/test_thermal_system.o $(OBJ_DIR)/ThermalIsolationTracker.o | $(BIN_DIR)
+	$(CXX) $(OBJ_DIR)/test_thermal_system.o $(OBJ_DIR)/ThermalIsolationTracker.o -o $(BIN_DIR)/test_thermal_system $(LIBS)
+	./$(BIN_DIR)/test_thermal_system
+
+$(OBJ_DIR)/test_thermal_system.o: test_thermal_system.cpp | $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 # Debug build
 debug: CXXFLAGS += -g -DDEBUG -O0

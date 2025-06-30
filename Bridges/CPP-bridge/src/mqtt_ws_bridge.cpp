@@ -165,10 +165,17 @@ void WebSocketConnection::handle_websocket_message(const uint8_t* data, size_t l
 void WebSocketConnection::handle_mqtt_message(const std::string& topic, const std::vector<uint8_t>& payload) {
     if (!active_ || !buffer_) return;
     
+    // Check if this is a sensor message that should be processed by thermal monitoring
+    std::string payload_str(payload.begin(), payload.end());
+    if (topic.find("sensors/") == 0 && g_bridge_instance) {
+        // Process sensor message through thermal monitoring
+        g_bridge_instance->process_sensor_message(topic, payload_str);
+    }
+    
     // Format message for WebSocket
     buffer_->format_mqtt_message(topic, payload);
     
-    // Send to WebSocket client
+    // Send to WebSocket client  
     send_to_websocket(std::vector<uint8_t>(buffer_->data(), buffer_->data() + buffer_->size()));
 }
 
@@ -361,6 +368,12 @@ MqttWebSocketBridge::MqttWebSocketBridge(const BridgeConfig& config)
     std::cout << "   MQTT Broker: " << config_.mqtt_host << ":" << config_.mqtt_port << std::endl;
     std::cout << "   WebSocket Port: " << config_.websocket_port << std::endl;
     std::cout << "   Worker Threads: " << config_.worker_threads << std::endl;
+    
+    // Initialize thermal monitoring if enabled
+    if (config_.thermal_monitoring_enabled) {
+        thermal_tracker_ = std::make_unique<thermal_monitoring::ThermalIsolationTracker>(config_.thermal_config);
+        std::cout << "🌡️  Thermal monitoring initialized" << std::endl;
+    }
 }
 
 MqttWebSocketBridge::~MqttWebSocketBridge() {
@@ -395,6 +408,12 @@ bool MqttWebSocketBridge::initialize() {
         return false;
     }
     
+    // Setup thermal monitoring
+    if (config_.thermal_monitoring_enabled && !setup_thermal_monitoring()) {
+        std::cerr << "❌ Failed to setup thermal monitoring" << std::endl;
+        return false;
+    }
+    
     std::cout << "✅ Bridge initialization complete" << std::endl;
     return true;
 }
@@ -412,6 +431,12 @@ bool MqttWebSocketBridge::start() {
     // Start single worker thread for libwebsockets (thread-safe approach)
     worker_threads_.emplace_back(&MqttWebSocketBridge::worker_thread_loop, this);
     
+    // Start thermal monitoring if enabled
+    if (config_.thermal_monitoring_enabled && thermal_tracker_) {
+        thermal_tracker_->start();
+        std::cout << "🌡️  Thermal monitoring started" << std::endl;
+    }
+    
     std::cout << "✅ Bridge started successfully!" << std::endl;
     std::cout << "📊 Monitoring connections..." << std::endl;
     
@@ -423,6 +448,12 @@ void MqttWebSocketBridge::stop() {
     
     std::cout << "\n🛑 Stopping bridge..." << std::endl;
     running_ = false;
+    
+    // Stop thermal monitoring if running
+    if (thermal_tracker_) {
+        thermal_tracker_->stop();
+        std::cout << "🌡️  Thermal monitoring stopped" << std::endl;
+    }
     
     // Wait for worker threads to finish
     for (auto& thread : worker_threads_) {
@@ -671,6 +702,76 @@ int MqttWebSocketBridge::websocket_callback(struct lws* wsi, enum lws_callback_r
     (void)user;
     
     return 0;
+}
+
+//=============================================================================
+// Thermal Monitoring Integration
+//=============================================================================
+
+bool MqttWebSocketBridge::setup_thermal_monitoring() {
+    if (!thermal_tracker_) {
+        return false;
+    }
+    
+    // Set up alert callback to handle thermal alerts
+    thermal_tracker_->set_alert_callback(
+        [this](const thermal_monitoring::Alert& alert) {
+            this->handle_thermal_alert(alert);
+        }
+    );
+    
+    std::cout << "✅ Thermal monitoring setup complete" << std::endl;
+    return true;
+}
+
+void MqttWebSocketBridge::process_sensor_message(const std::string& topic, const std::string& payload) {
+    if (!thermal_tracker_) return;
+    
+    // Parse sensor message using the thermal monitoring utilities
+    auto sensor_reading = thermal_monitoring::parse_sensor_message(topic, payload);
+    if (sensor_reading) {
+        // Process the sensor data through the thermal tracker
+        thermal_tracker_->process_sensor_data(
+            sensor_reading->sensor_id,
+            sensor_reading->temperature,
+            sensor_reading->humidity,
+            sensor_reading->location
+        );
+    }
+}
+
+void MqttWebSocketBridge::handle_thermal_alert(const thermal_monitoring::Alert& alert) {
+    // Create MQTT topic for alerts
+    std::string alert_topic = "alerts/" + alert.sensor_id;
+    
+    // Create alert message
+    std::stringstream alert_msg;
+    alert_msg << "{"
+              << "\"sensor_id\":\"" << alert.sensor_id << "\","
+              << "\"alert_type\":" << static_cast<int>(alert.alert_type) << ","
+              << "\"message\":\"" << alert.message << "\","
+              << "\"location\":\"" << alert.location << "\","
+              << "\"temperature\":" << alert.temperature << ","
+              << "\"humidity\":" << alert.humidity << ","
+              << "\"temp_rate\":" << alert.temp_rate << ","
+              << "\"timestamp\":" << std::chrono::duration_cast<std::chrono::seconds>(
+                     alert.timestamp.time_since_epoch()).count()
+              << "}";
+    
+    std::string alert_json = alert_msg.str();
+    
+    // Send alert to all connected WebSocket clients
+    std::lock_guard<std::mutex> lock(connections_mutex_);
+    for (const auto& connection_pair : connections_) {
+        if (connection_pair.second && connection_pair.second->is_active()) {
+            // Format alert for WebSocket transmission
+            std::string ws_message = alert_topic + "|" + alert_json;
+            std::vector<uint8_t> ws_data(ws_message.begin(), ws_message.end());
+            connection_pair.second->send_to_websocket(ws_data);
+        }
+    }
+    
+    std::cout << "🚨 Alert sent to " << connections_.size() << " WebSocket clients" << std::endl;
 }
 
 } // namespace mqtt_ws

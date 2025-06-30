@@ -12,6 +12,7 @@
 #include <libwebsockets.h>
 #include <mosquitto.h>
 #include <openssl/ssl.h>
+#include "../../ThermalIsolationTracker.h"
 
 namespace mqtt_ws {
 
@@ -42,6 +43,10 @@ struct BridgeConfig {
     bool use_epoll = true;
     bool zero_copy_enabled = true;
     bool connection_pooling = true;
+    
+    // Thermal Monitoring Configuration
+    bool thermal_monitoring_enabled = true;
+    thermal_monitoring::ThermalConfig thermal_config;
 };
 
 // Forward declarations
@@ -168,7 +173,8 @@ private:
     // SSL context
     SSL_CTX* ssl_ctx_;
     
-
+    // Thermal monitoring
+    std::unique_ptr<thermal_monitoring::ThermalIsolationTracker> thermal_tracker_;
     
 public:
     MqttWebSocketBridge(const BridgeConfig& config);
@@ -183,7 +189,8 @@ public:
     static int websocket_callback(struct lws* wsi, enum lws_callback_reasons reason,
                                  void* user, void* in, size_t len);
     
-
+    // Sensor message processing (public for integration)
+    void process_sensor_message(const std::string& topic, const std::string& payload);
     
 private:
     // Internal methods
@@ -197,6 +204,10 @@ private:
     
     // Message processing
     void process_websocket_message(struct lws* wsi, const uint8_t* data, size_t len);
+    
+    // Thermal monitoring
+    bool setup_thermal_monitoring();
+    void handle_thermal_alert(const thermal_monitoring::Alert& alert);
     
     // Utility methods
     std::string extract_topic_from_url(const std::string& url);
