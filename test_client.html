@@ -32,7 +32,7 @@
         </div>
         
         <div class="bridge-section js-bridge">
-            <h3>JS Bridge (Port 80)</h3>
+            <h3>JS Bridge (Port 8081)</h3>
             <div id="jsStatus" class="status disconnected">Disconnected</div>
             <button class="js-btn" onclick="connectJs()">Connect to JS Bridge</button>
             <button class="js-btn" onclick="disconnectJs()">Disconnect JS</button>
@@ -125,8 +125,8 @@
             }
             
             try {
-                // Connect to JS bridge on port 80
-                jsWs = new WebSocket('ws://localhost:80/test/topic');
+                // Connect to JS bridge on port 8081
+                jsWs = new WebSocket('ws://localhost:8081/test/topic');
                 
                 jsWs.onopen = function(event) {
                     jsConnected = true;
@@ -229,7 +229,7 @@
         // Auto-setup on page load
         document.addEventListener('DOMContentLoaded', function() {
             addMessage('MQTT-WebSocket Bridge Test Client loaded', 'info');
-            addMessage('C++ Bridge runs on port 8080, JS Bridge runs on port 80', 'info');
+            addMessage('C++ Bridge runs on port 8080, JS Bridge runs on port 8081', 'info');
             addMessage('Click "Connect to C++ Bridge" to test the C++ implementation', 'info');
             addMessage('Click "Connect to JS Bridge" to test the JavaScript implementation', 'info');
         });

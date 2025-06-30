@@ -9,6 +9,7 @@ var mqtt = require('mqtt'),
     events = require('events'),
     util = require('util'),
     https = require('https'),
+    http = require('http'),
     fs = require('fs'),
     underscore = require('underscore');
 
@@ -18,7 +19,8 @@ var defaultOptions = {
         port: 1883,
     },
     websocket: {
-        port: 80
+        port: 8080,
+        ssl: false
     }
 };
 
@@ -31,53 +33,120 @@ var Bridge = module.exports = function Bridge(options) {
 
     var self = this;
 
-    // Create Websocket Server
-    var app = https.createServer({
-        key: fs.readFileSync(this.options.websocket.ssl_key),
-        cert: fs.readFileSync(this.options.websocket.ssl_cert)
-    }, function(req, res){
-        res.writeHead(418);
-        res.end("<h1>418 - I'm a teapot</h1>");
-    }).listen(this.port);
-    this.wss = new WebSocketServer({server:app});
+    // Check if SSL is configured and certificates exist
+    var useSSL = this.options.websocket.ssl && 
+                 this.options.websocket.ssl_key && 
+                 this.options.websocket.ssl_cert;
+    
+    if (useSSL) {
+        try {
+            // Verify SSL files exist
+            if (!fs.existsSync(this.options.websocket.ssl_key)) {
+                console.warn('SSL key file not found:', this.options.websocket.ssl_key);
+                useSSL = false;
+            }
+            if (!fs.existsSync(this.options.websocket.ssl_cert)) {
+                console.warn('SSL cert file not found:', this.options.websocket.ssl_cert);
+                useSSL = false;
+            }
+        } catch (err) {
+            console.warn('SSL configuration error:', err.message);
+            useSSL = false;
+        }
+    }
+
+    // Create appropriate server (HTTP or HTTPS)
+    var app;
+    if (useSSL) {
+        console.log('Starting HTTPS WebSocket server on port', this.port);
+        app = https.createServer({
+            key: fs.readFileSync(this.options.websocket.ssl_key),
+            cert: fs.readFileSync(this.options.websocket.ssl_cert)
+        }, function(req, res){
+            res.writeHead(418);
+            res.end("<h1>418 - I'm a teapot</h1>");
+        }).listen(this.port);
+    } else {
+        console.log('Starting HTTP WebSocket server on port', this.port);
+        app = http.createServer(function(req, res){
+            res.writeHead(418);
+            res.end("<h1>418 - I'm a teapot</h1>");
+        }).listen(this.port);
+    }
+
+    // Create WebSocket Server
+    this.wss = new WebSocketServer({server: app});
     this.wss.on('error', function(err) {
+        console.error('WebSocket Server Error:', err);
         self.emit('error', err);
     });
 
     // Incoming WS connection
-    this.wss.on('connection', function(ws) {
+    this.wss.on('connection', function(ws, req) {
         // Set connection string we can use as client identifier
-        ws.connectString = util.format("%s:%d",
-            ws.upgradeReq.connection.remoteAddress, ws.upgradeReq.connection.remotePort);
+        // Handle both old and new ws API versions
+        var remoteAddress, remotePort;
+        
+        if (req) {
+            // Newer ws versions pass req as second parameter
+            remoteAddress = req.connection ? req.connection.remoteAddress : req.socket.remoteAddress;
+            remotePort = req.connection ? req.connection.remotePort : req.socket.remotePort;
+        } else if (ws.upgradeReq) {
+            // Older ws versions
+            remoteAddress = ws.upgradeReq.connection.remoteAddress;
+            remotePort = ws.upgradeReq.connection.remotePort;
+        } else {
+            // Fallback
+            remoteAddress = 'unknown';
+            remotePort = 0;
+        }
+
+        ws.connectString = util.format("%s:%d", remoteAddress, remotePort);
+        console.log('WebSocket connection from:', ws.connectString);
 
         // Signal we've got a connection
-        self.emit('connection', ws);
+        self.emit('connection', ws, req);
     });
+    
     events.EventEmitter.call(this);
 };
 util.inherits(Bridge, events.EventEmitter);
 
 Bridge.prototype.connectMqtt = function(options) {
-    // Create our client
-    options.encoding = "binary";
-    var mqttClient = mqtt.createClient(this.options.mqtt.port, this.options.mqtt.host, options);
+    // Create our client using the modern API
+    options = options || {};
+    
+    // Build connection URL
+    var mqttUrl = util.format('mqtt://%s:%d', this.options.mqtt.host, this.options.mqtt.port);
+    
+    // Set encoding option
+    options.encoding = options.encoding || "binary";
+    
+    console.log('Connecting to MQTT broker at:', mqttUrl);
+    var mqttClient = mqtt.connect(mqttUrl, options);
+    
     mqttClient.options = options;
-
-    // Note: Have to do this because the MQTT client blocks connection
-    // errors, which we want to capture
-    mqttClient.stream.on('error', mqttClient.emit.bind(mqttClient, 'error'));
-
-    // Disable reconnection
-    mqttClient._reconnect = function() {};
-
-    // Set the host and port
     mqttClient.host = this.options.mqtt.host;
     mqttClient.port = this.options.mqtt.port;
+
+    // Add connection event handlers
+    mqttClient.on('connect', function() {
+        console.log('Connected to MQTT broker');
+    });
+
+    mqttClient.on('error', function(err) {
+        console.error('MQTT connection error:', err);
+    });
+
+    mqttClient.on('close', function() {
+        console.log('MQTT connection closed');
+    });
 
     return mqttClient;
 }
 
 Bridge.prototype.close = function() {
+    console.log('Closing WebSocket server');
     this.wss.close();
     this.emit('close');
 }

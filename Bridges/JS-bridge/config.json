@@ -1,0 +1,27 @@
+{
+    "mqtt": {
+        "host": "localhost",
+        "port": 1883
+    },
+    "websocket": {
+        "port": 8081,
+        "ssl": false
+    },
+    "log4js": {
+        "appenders": {
+            "console": {
+                "type": "console"
+            },
+            "file": {
+                "type": "file",
+                "filename": "bridge.log"
+            }
+        },
+        "categories": {
+            "default": {
+                "appenders": ["console", "file"],
+                "level": "info"
+            }
+        }
+    }
+} 

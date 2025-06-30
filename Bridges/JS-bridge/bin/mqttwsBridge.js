@@ -12,17 +12,13 @@ var yargs = require('yargs'),
     .alias({
         'p': 'port',
         'h': 'host',
-        's': 'sslCert',
-        'k': 'sslKey',
         'l': 'listen',
         'c': 'configFile',
     })
     .describe({
-        's': 'Path to ssl certificate file',
-        'k': 'Path to ssl key file',
         'p': 'MQTT port to connect to',
         'h': 'Hostname of MQTT server',
-        'l': 'WebSocket port to listen on',
+        'l': 'WebSocket port to listen on (default: 8081)',
         'c': 'Configuration file',
         'help': 'Show this help'
     })
@@ -65,12 +61,6 @@ function parseCommandLine(args, config) {
     if (args.l || args.listen) {
         config.websocket.port = args.l || args.listen;
     }
-    if (args.s || args.sslCert) {
-        config.websocket.ssl_cert = args.s || args.sslCert;
-    }
-    if (args.k || args.sslKey) {
-        config.websocket.ssl_key = args.k || args.sslKey;
-    }
 
     return config;
 }
@@ -112,7 +102,7 @@ function run(config) {
 
     // Create our bridge
     bridge = mqttws.createBridge(config);
-    logger.info("Listening for incoming WebSocket connections on port %d",
+    logger.info("Listening for incoming WebSocket connections on port %d (ws://)",
         bridge.port);
 
     // Set up error handling
@@ -121,7 +111,7 @@ function run(config) {
     });
 
     // Handle incoming WS connection
-    bridge.on('connection', function(ws) {
+    bridge.on('connection', function(ws, req) {
         // URL-decode the URL, and use the URI part as the subscription topic
         logger.info("WebSocket connection from %s received", ws.connectString);
 
@@ -131,11 +121,27 @@ function run(config) {
             logError(err, util.format("WebSocket error in client %s", ws.connectString));
         });
 
-        // Parse the URL
-        var parsed = url.parse(ws.upgradeReq.url, true);
+        // Parse the URL - handle both old and new ws API versions
+        var requestUrl;
+        if (req && req.url) {
+            requestUrl = req.url;
+        } else if (ws.upgradeReq && ws.upgradeReq.url) {
+            requestUrl = ws.upgradeReq.url;
+        } else {
+            requestUrl = '/';
+        }
+        
+        // Debug logging
+        logger.info("Raw request URL: '%s'", requestUrl);
+        
+        var parsed = url.parse(requestUrl, true);
+        logger.info("Parsed pathname: '%s'", parsed.pathname);
+        
         // Connect to the MQTT server using the URL query as options
         var mqtt = bridge.connectMqtt(parsed.query);
         mqtt.topic = decodeURIComponent(parsed.pathname.substring(1));
+        
+        logger.info("Extracted topic: '%s'", mqtt.topic);
 
         ws.on('close', function() {
             logger.info("WebSocket client %s closed", ws.connectString);
@@ -143,17 +149,22 @@ function run(config) {
         });
 
         ws.on('message', function(message) {
-            message = new Buffer(message);
-            var char = "";
-            var topic = "";
-            var offset = 0;
-            while(char != "|" && offset < message.length){
-                topic += char;
-                char = String.fromCharCode(message.readUInt16LE(offset));
-                offset += 2;
+            // Convert message to string for parsing
+            var messageStr = message.toString('utf8');
+            logger.info("Received message: '%s'", messageStr);
+            
+            // Parse topic and payload separated by |
+            var pipeIndex = messageStr.indexOf('|');
+            if (pipeIndex === -1) {
+                logger.error("Invalid message format - no topic separator found");
+                return;
             }
-            logger.info("WebSocket client %s publishing to %s", ws.connectString, topic);
-            mqtt.publish(topic, message.slice(offset), mqtt.options);
+            
+            var topic = messageStr.substring(0, pipeIndex);
+            var payload = messageStr.substring(pipeIndex + 1);
+            
+            logger.info("WebSocket client %s publishing to '%s': '%s'", ws.connectString, topic, payload);
+            mqtt.publish(topic, payload, mqtt.options);
         });
 
         mqtt.on('error', function(err) {
@@ -173,7 +184,9 @@ function run(config) {
         });
 
         mqtt.on('message', function(topic, message, packet) {
-            ws.send(Buffer.concat([new Buffer(topic + "|", "utf16le"), new Buffer(message)]), {binary: true, mask: false});
+            var messageStr = topic + "|" + message.toString();
+            logger.info("Sending to WebSocket client %s: '%s'", ws.connectString, messageStr);
+            ws.send(messageStr);
         });
     });
 }
