@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
+#include <thread>
 #include <algorithm>
 #include <cstring>
 #include <unistd.h>
@@ -30,55 +31,40 @@ void MessageBuffer::resize(size_t new_size) {
 }
 
 bool MessageBuffer::parse_websocket_message(std::string& topic, std::vector<uint8_t>& payload) {
-    if (size_ < 4) return false; // Minimum for UTF-16LE topic separator
+    if (size_ == 0) return false;
     
-    // Parse UTF-16LE encoded topic followed by '|'
-    size_t offset = 0;
-    topic.clear();
+    // Convert message to string for parsing (UTF-8)
+    std::string message_str(buffer_.begin(), buffer_.begin() + size_);
     
-    while (offset < size_ - 1) {
-        uint16_t char_code = *reinterpret_cast<uint16_t*>(buffer_.data() + offset);
-        
-        if (char_code == '|') {
-            offset += 2;
-            break;
-        }
-        
-        // Convert UTF-16LE to ASCII (simplified)
-        if (char_code < 128) {
-            topic += static_cast<char>(char_code);
-        }
-        offset += 2;
+    std::cout << "🔍 [C++] Parsing message: '" << message_str << "'" << std::endl;
+    
+    // Find the topic separator '|'
+    size_t pipe_pos = message_str.find('|');
+    if (pipe_pos == std::string::npos) {
+        std::cout << "❌ [C++] Invalid message format - no topic separator found" << std::endl;
+        return false;
     }
     
-    // Remaining bytes are the payload
-    if (offset < size_) {
-        payload.assign(buffer_.begin() + offset, buffer_.begin() + size_);
-    } else {
-        payload.clear();
-    }
+    // Extract topic and payload
+    topic = message_str.substr(0, pipe_pos);
+    std::string payload_str = message_str.substr(pipe_pos + 1);
     
+    // Convert payload string to bytes
+    payload.assign(payload_str.begin(), payload_str.end());
+    
+    std::cout << "✅ [C++] Parsed topic: '" << topic << "', payload: '" << payload_str << "'" << std::endl;
     return !topic.empty();
 }
 
 void MessageBuffer::format_mqtt_message(const std::string& topic, const std::vector<uint8_t>& payload) {
-    // Format: "topic|" in UTF-16LE + payload
-    size_t topic_utf16_size = (topic.length() + 1) * 2; // +1 for '|'
-    size_t total_size = topic_utf16_size + payload.size();
+    // Format: "topic|payload" in UTF-8
+    std::string payload_str(payload.begin(), payload.end());
+    std::string message_str = topic + "|" + payload_str;
     
-    resize(total_size);
+    std::cout << "📝 [C++] Formatting message: '" << message_str << "'" << std::endl;
     
-    // Convert topic to UTF-16LE
-    uint16_t* utf16_ptr = reinterpret_cast<uint16_t*>(buffer_.data());
-    for (size_t i = 0; i < topic.length(); ++i) {
-        utf16_ptr[i] = static_cast<uint16_t>(topic[i]);
-    }
-    utf16_ptr[topic.length()] = '|';
-    
-    // Copy payload
-    if (!payload.empty()) {
-        std::memcpy(buffer_.data() + topic_utf16_size, payload.data(), payload.size());
-    }
+    resize(message_str.size());
+    std::memcpy(buffer_.data(), message_str.data(), message_str.size());
 }
 
 //=============================================================================
@@ -90,7 +76,13 @@ WebSocketConnection::WebSocketConnection(struct lws* wsi, const std::string& top
 }
 
 WebSocketConnection::~WebSocketConnection() {
+    std::cout << "🔍 DEBUG: WebSocketConnection destructor called" << std::endl;
+    std::cout.flush();
+    
     cleanup();
+    
+    std::cout << "🔍 DEBUG: WebSocketConnection destructor completed" << std::endl;
+    std::cout.flush();
 }
 
 bool WebSocketConnection::initialize(const BridgeConfig& config) {
@@ -99,6 +91,12 @@ bool WebSocketConnection::initialize(const BridgeConfig& config) {
     // Create MQTT client for this connection
     std::string client_id = "ws_client_" + std::to_string(reinterpret_cast<uintptr_t>(wsi_));
     mqtt_client_ = std::make_unique<MqttClient>(client_id, config.mqtt_host, config.mqtt_port);
+    
+    // Set up the callback to handle incoming MQTT messages
+    mqtt_client_->set_message_callback([this](const std::string& topic, const std::vector<uint8_t>& payload) {
+        std::cout << "📩 [C++] Received MQTT message on topic '" << topic << "': " << std::string(payload.begin(), payload.end()) << std::endl;
+        this->handle_mqtt_message(topic, payload);
+    });
     
     if (!mqtt_client_->connect()) {
         return false;
@@ -109,16 +107,34 @@ bool WebSocketConnection::initialize(const BridgeConfig& config) {
         return false;
     }
     
+    std::cout << "✅ [C++] Subscribed to topic: " << topic_ << std::endl;
     active_ = true;
     return true;
 }
 
 void WebSocketConnection::cleanup() {
+    std::cout << "🔍 DEBUG: WebSocketConnection::cleanup() called" << std::endl;
+    std::cout.flush();
+    
     if (mqtt_client_) {
+        std::cout << "🔍 DEBUG: Calling mqtt_client_->disconnect()" << std::endl;
+        std::cout.flush();
+        
         mqtt_client_->disconnect();
+        
+        std::cout << "🔍 DEBUG: Resetting mqtt_client_" << std::endl;
+        std::cout.flush();
+        
         mqtt_client_.reset();
+        
+        std::cout << "🔍 DEBUG: mqtt_client_ reset completed" << std::endl;
+        std::cout.flush();
     }
+    
     active_ = false;
+    
+    std::cout << "🔍 DEBUG: WebSocketConnection::cleanup() completed" << std::endl;
+    std::cout.flush();
 }
 
 void WebSocketConnection::handle_websocket_message(const uint8_t* data, size_t len) {
@@ -134,7 +150,14 @@ void WebSocketConnection::handle_websocket_message(const uint8_t* data, size_t l
     if (buffer_->parse_websocket_message(topic, payload)) {
         // Forward to MQTT
         if (mqtt_client_) {
-            mqtt_client_->publish(topic, payload);
+            std::string payload_str(payload.begin(), payload.end());
+            std::cout << "📤 [C++] Publishing to MQTT topic '" << topic << "': '" << payload_str << "'" << std::endl;
+            
+            if (mqtt_client_->publish(topic, payload)) {
+                std::cout << "✅ [C++] Successfully published to MQTT" << std::endl;
+            } else {
+                std::cout << "❌ [C++] Failed to publish to MQTT" << std::endl;
+            }
         }
     }
 }
@@ -152,7 +175,24 @@ void WebSocketConnection::handle_mqtt_message(const std::string& topic, const st
 bool WebSocketConnection::send_to_websocket(const std::vector<uint8_t>& data) {
     if (!wsi_ || data.empty()) return false;
     
-    // This is a simplified implementation - full libwebsockets integration needed
+    std::cout << "📤 [C++] Sending to WebSocket client (" << data.size() << " bytes)" << std::endl;
+    
+    // Allocate buffer with LWS_PRE bytes padding for libwebsockets
+    size_t total_size = LWS_PRE + data.size();
+    std::vector<uint8_t> send_buffer(total_size);
+    
+    // Copy data after the LWS_PRE padding
+    std::memcpy(send_buffer.data() + LWS_PRE, data.data(), data.size());
+    
+    // Send the data using libwebsockets as text (not binary)
+    int result = lws_write(wsi_, send_buffer.data() + LWS_PRE, data.size(), LWS_WRITE_TEXT);
+    
+    if (result < 0) {
+        std::cout << "❌ [C++] Failed to send WebSocket message" << std::endl;
+        return false;
+    }
+    
+    std::cout << "✅ [C++] Successfully sent " << result << " bytes to WebSocket client" << std::endl;
     return true;
 }
 
@@ -186,27 +226,82 @@ MqttClient::~MqttClient() {
 }
 
 bool MqttClient::connect() {
-    if (!mosq_) return false;
+    if (!mosq_) {
+        std::cout << "❌ [C++] MQTT client not initialized" << std::endl;
+        return false;
+    }
+    
+    std::cout << "🔗 [C++] Connecting to MQTT broker " << host_ << ":" << port_ << std::endl;
     
     int rc = mosquitto_connect(mosq_, host_.c_str(), port_, 60);
-    if (rc == MOSQ_ERR_SUCCESS) {
-        mosquitto_loop_start(mosq_);
-        return true;
+    if (rc != MOSQ_ERR_SUCCESS) {
+        std::cout << "❌ [C++] Failed to connect to MQTT broker, error: " << rc << std::endl;
+        return false;
     }
-    return false;
+    
+    mosquitto_loop_start(mosq_);
+    
+    // Wait for connection to be established (up to 5 seconds)
+    int wait_count = 0;
+    while (!connected_ && wait_count < 50) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        wait_count++;
+    }
+    
+    if (connected_) {
+        std::cout << "✅ [C++] Connected to MQTT broker" << std::endl;
+        return true;
+    } else {
+        std::cout << "❌ [C++] Connection to MQTT broker timed out" << std::endl;
+        return false;
+    }
 }
 
 void MqttClient::disconnect() {
+    std::cout << "🔍 DEBUG: MqttClient::disconnect() called" << std::endl;
+    std::cout.flush();
+    
     if (mosq_ && connected_) {
-        mosquitto_loop_stop(mosq_, false);
+        std::cout << "🔍 DEBUG: Stopping MQTT loop" << std::endl;
+        std::cout.flush();
+        
+        // Force stop the loop to avoid hanging
+        mosquitto_loop_stop(mosq_, true);
+        
+        std::cout << "🔍 DEBUG: Disconnecting from MQTT broker" << std::endl;
+        std::cout.flush();
+        
         mosquitto_disconnect(mosq_);
+        
+        std::cout << "🔍 DEBUG: MQTT disconnect completed" << std::endl;
+        std::cout.flush();
     }
+    
     connected_ = false;
+    
+    std::cout << "🔍 DEBUG: MqttClient::disconnect() completed" << std::endl;
+    std::cout.flush();
 }
 
 bool MqttClient::subscribe(const std::string& topic) {
-    if (!mosq_ || !connected_) return false;
-    return mosquitto_subscribe(mosq_, nullptr, topic.c_str(), 0) == MOSQ_ERR_SUCCESS;
+    if (!mosq_) {
+        std::cout << "❌ [C++] MQTT client not initialized for subscription" << std::endl;
+        return false;
+    }
+    if (!connected_) {
+        std::cout << "❌ [C++] MQTT client not connected for subscription" << std::endl;
+        return false;
+    }
+    
+    std::cout << "📝 [C++] Subscribing to MQTT topic: " << topic << std::endl;
+    int rc = mosquitto_subscribe(mosq_, nullptr, topic.c_str(), 0);
+    if (rc == MOSQ_ERR_SUCCESS) {
+        std::cout << "✅ [C++] Successfully subscribed to topic: " << topic << std::endl;
+        return true;
+    } else {
+        std::cout << "❌ [C++] Failed to subscribe to topic, error: " << rc << std::endl;
+        return false;
+    }
 }
 
 bool MqttClient::unsubscribe(const std::string& topic) {
@@ -229,6 +324,9 @@ void MqttClient::on_connect_callback(struct mosquitto*, void* userdata, int rc) 
     MqttClient* client = static_cast<MqttClient*>(userdata);
     if (rc == 0) {
         client->connected_ = true;
+        std::cout << "✅ [C++] MQTT connection established successfully" << std::endl;
+    } else {
+        std::cout << "❌ [C++] MQTT connection failed with code: " << rc << std::endl;
     }
 }
 
@@ -461,12 +559,35 @@ void MqttWebSocketBridge::handle_new_connection(struct lws* wsi, const std::stri
 void MqttWebSocketBridge::handle_connection_close(struct lws* wsi) {
     std::lock_guard<std::mutex> lock(connections_mutex_);
     
+    std::cout << "🔍 DEBUG: handle_connection_close called for wsi=" << wsi << std::endl;
+    std::cout.flush();
+    
     auto it = connections_.find(wsi);
     if (it != connections_.end()) {
-        std::cout << "🗑️  Removing connection for topic: " << it->second->get_topic() << std::endl;
+        std::string topic = it->second->get_topic();
+        std::cout << "🔍 DEBUG: Found connection in map for topic: " << topic << std::endl;
+        std::cout.flush();
+        
+        std::cout << "🗑️  Removing connection for topic: " << topic << std::endl;
+        std::cout.flush(); // Ensure first message is shown
+        
+        std::cout << "🔍 DEBUG: About to erase connection from map" << std::endl;
+        std::cout.flush();
+        
         connections_.erase(it);
         connection_count_--;
+        
+        std::cout << "🔍 DEBUG: Connection erased, new count: " << connection_count_ << std::endl;
+        std::cout.flush();
+        
         std::cout << "✅ Connection removed (Total: " << connection_count_ << ")" << std::endl;
+        std::cout.flush(); // Ensure second message is shown
+        
+        std::cout << "🔍 DEBUG: handle_connection_close completed successfully" << std::endl;
+        std::cout.flush();
+    } else {
+        std::cout << "⚠️  Attempted to remove unknown connection (wsi=" << wsi << ")" << std::endl;
+        std::cout.flush();
     }
 }
 
