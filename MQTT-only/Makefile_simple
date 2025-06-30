@@ -1,0 +1,23 @@
+# Simple MQTT-Only Bridge Makefile
+
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2
+INCLUDES = -I. -I..
+LIBS = -lmosquitto -ljsoncpp -lpthread
+
+# Source files
+BRIDGE_SOURCE = mqtt_only_bridge_simple.cpp
+THERMAL_SOURCE = ../ThermalIsolationTracker.cpp
+
+# Build targets
+all: test_build
+
+test_build: $(BRIDGE_SOURCE) $(THERMAL_SOURCE)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o test_mqtt_simple $(BRIDGE_SOURCE) $(THERMAL_SOURCE) $(LIBS)
+	@echo "✅ MQTT-only bridge compiled successfully!"
+
+clean:
+	rm -f test_mqtt_simple
+	@echo "🧹 Cleaned build files"
+
+.PHONY: all clean test_build
