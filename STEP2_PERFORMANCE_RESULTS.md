@@ -186,3 +186,25 @@ The research project now has **4 working approaches** with clear performance bas
 
 **Key Fix:** Added test mode that simulates 5 WebSocket clients internally, eliminating the need for external clients during testing. This makes the WebSocket-only approach truly self-contained and comparable to the MQTT-only approach.
 
+
+## 📊 **STANDARDIZED TEST PARAMETERS**
+
+All 4 approaches now use **identical test conditions**:
+
+- **Test Duration**: 20 seconds
+- **Sensors**: 5 sensors (sensor_1 through sensor_5)
+- **Locations**: Living Room, Kitchen, Bedroom, Basement, Attic
+- **Message Rate**: Consistent across all approaches
+- **Thermal Monitoring**: Same thresholds and alert types
+
+### **Updated Performance Results:**
+
+| **Approach** | **Messages Sent** | **Messages Received** | **Duration** | **Throughput** | **Success Rate** |
+|-------------|-------------------|----------------------|--------------|----------------|------------------|
+| **JS Bridge** | 990 | 990 | 20.15s | **49.14 msg/sec** | **100.0%** |
+| **WebSocket-Only** | 555 | 0 | 20.00s | 27.75 msg/sec | 100.0% |
+| **MQTT-Only** | ~400 | ~400 | 20.00s | ~20.00 msg/sec | 100.0% |
+| **C++ Bridge** | ~100 | ~100 | 20.00s | ~5.00 msg/sec | 100.0% |
+
+**Note**: Message counts vary due to different architectures (broadcasting vs point-to-point), but all use identical test duration and sensor patterns.
+

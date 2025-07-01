@@ -38,7 +38,7 @@ void simulate_sensor_data(ThermalIsolationTracker& tracker) {
     
     print_separator("Starting Sensor Data Simulation");
     
-    for (int cycle = 0; cycle < 10; cycle++) {
+    for (int cycle = 0; cycle < 20; cycle++) {
         std::cout << "\n--- Simulation Cycle " << (cycle + 1) << " ---" << std::endl;
         
         for (auto& sensor : sensors) {

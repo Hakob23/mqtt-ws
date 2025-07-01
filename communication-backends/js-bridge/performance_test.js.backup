@@ -52,7 +52,7 @@ client.on('connect', () => {
                 console.log('Success rate:', ((messages_received / messages_sent) * 100).toFixed(1) + '%');
                 client.end();
                 process.exit(0);
-            }, 20000);
+            }, 8000);
         }
     });
 });
