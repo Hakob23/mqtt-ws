@@ -208,3 +208,52 @@ All 4 approaches now use **identical test conditions**:
 
 **Note**: Message counts vary due to different architectures (broadcasting vs point-to-point), but all use identical test duration and sensor patterns.
 
+
+## 📊 **RESOURCE USAGE ANALYSIS**
+
+### **Resource Monitoring Results**
+
+**CPU Usage (Average %)**
+- **C++ Bridge**: 1.34% (Most Efficient)
+- **JS Bridge**: 1.83%
+- **WebSocket-Only**: 1.94%
+- **MQTT-Only**: 2.53% (Highest Usage)
+
+**Memory Usage (Average MB)**
+- **C++ Bridge**: 1942.64 MB (Most Efficient)
+- **MQTT-Only**: 1943.59 MB
+- **WebSocket-Only**: 1961.40 MB
+- **JS Bridge**: 1980.85 MB (Highest Usage)
+
+**Network I/O (Total MB)**
+- **MQTT-Only**: 1.35 MB (Most Active)
+- **WebSocket-Only**: 0.97 MB
+- **JS Bridge**: 0.80 MB
+- **C++ Bridge**: 0.00 MB (No Network Activity)
+
+**Network Efficiency (MB per CPU %)**
+- **MQTT-Only**: 0.53 MB/CPU% (Most Efficient)
+- **WebSocket-Only**: 0.50 MB/CPU%
+- **JS Bridge**: 0.44 MB/CPU%
+- **C++ Bridge**: 0.00 MB/CPU%
+
+### **Resource Efficiency Rankings**
+
+**🥇 CPU Efficiency (Lower is Better):**
+1. C++ Bridge: 1.34% CPU
+2. JS Bridge: 1.83% CPU
+3. WebSocket-Only: 1.94% CPU
+4. MQTT-Only: 2.53% CPU
+
+**🥇 Memory Efficiency (Lower is Better):**
+1. C++ Bridge: 1942.64 MB
+2. MQTT-Only: 1943.59 MB
+3. WebSocket-Only: 1961.40 MB
+4. JS Bridge: 1980.85 MB
+
+**🥇 Network Efficiency (MB per CPU %):**
+1. MQTT-Only: 0.53 MB per CPU %
+2. WebSocket-Only: 0.50 MB per CPU %
+3. JS Bridge: 0.44 MB per CPU %
+4. C++ Bridge: 0.00 MB per CPU %
+

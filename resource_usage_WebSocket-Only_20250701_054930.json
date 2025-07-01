@@ -1,0 +1,510 @@
+{
+  "test_name": "WebSocket-Only",
+  "start_time": "2025-07-01T05:49:10.929712",
+  "end_time": "2025-07-01T05:49:30.951849",
+  "duration": 20,
+  "cpu_samples": [
+    {
+      "timestamp": 1751338151.9318075,
+      "cpu_percent": 3.1
+    },
+    {
+      "timestamp": 1751338152.9332936,
+      "cpu_percent": 1.0
+    },
+    {
+      "timestamp": 1751338153.9358711,
+      "cpu_percent": 2.1
+    },
+    {
+      "timestamp": 1751338154.9374187,
+      "cpu_percent": 0.4
+    },
+    {
+      "timestamp": 1751338155.940949,
+      "cpu_percent": 3.0
+    },
+    {
+      "timestamp": 1751338156.9430232,
+      "cpu_percent": 2.4
+    },
+    {
+      "timestamp": 1751338157.9446146,
+      "cpu_percent": 2.1
+    },
+    {
+      "timestamp": 1751338158.946211,
+      "cpu_percent": 2.1
+    },
+    {
+      "timestamp": 1751338159.947423,
+      "cpu_percent": 0.7
+    },
+    {
+      "timestamp": 1751338160.9477503,
+      "cpu_percent": 3.1
+    },
+    {
+      "timestamp": 1751338161.949256,
+      "cpu_percent": 2.1
+    },
+    {
+      "timestamp": 1751338162.951817,
+      "cpu_percent": 2.6
+    },
+    {
+      "timestamp": 1751338163.9536605,
+      "cpu_percent": 0.9
+    },
+    {
+      "timestamp": 1751338164.954932,
+      "cpu_percent": 3.5
+    },
+    {
+      "timestamp": 1751338165.9563239,
+      "cpu_percent": 1.3
+    },
+    {
+      "timestamp": 1751338166.9577487,
+      "cpu_percent": 3.2
+    },
+    {
+      "timestamp": 1751338167.959487,
+      "cpu_percent": 0.4
+    },
+    {
+      "timestamp": 1751338168.961477,
+      "cpu_percent": 2.2
+    },
+    {
+      "timestamp": 1751338169.9629724,
+      "cpu_percent": 0.7
+    }
+  ],
+  "memory_samples": [
+    {
+      "timestamp": 1751338150.9307928,
+      "total_mb": 9794.21484375,
+      "available_mb": 7661.609375,
+      "used_mb": 1950.99609375,
+      "percent": 21.8
+    },
+    {
+      "timestamp": 1751338151.932148,
+      "total_mb": 9794.21484375,
+      "available_mb": 7649.05078125,
+      "used_mb": 1963.52734375,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338152.9336104,
+      "total_mb": 9794.21484375,
+      "available_mb": 7655.5703125,
+      "used_mb": 1957.0234375,
+      "percent": 21.8
+    },
+    {
+      "timestamp": 1751338153.935013,
+      "total_mb": 9794.21484375,
+      "available_mb": 7655.625,
+      "used_mb": 1956.9765625,
+      "percent": 21.8
+    },
+    {
+      "timestamp": 1751338154.9364305,
+      "total_mb": 9794.21484375,
+      "available_mb": 7655.6015625,
+      "used_mb": 1957.02734375,
+      "percent": 21.8
+    },
+    {
+      "timestamp": 1751338155.9380214,
+      "total_mb": 9794.21484375,
+      "available_mb": 7651.1640625,
+      "used_mb": 1961.4765625,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338156.9401653,
+      "total_mb": 9794.21484375,
+      "available_mb": 7652.20703125,
+      "used_mb": 1960.43359375,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338157.94171,
+      "total_mb": 9794.21484375,
+      "available_mb": 7653.32421875,
+      "used_mb": 1959.31640625,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338158.9431524,
+      "total_mb": 9794.21484375,
+      "available_mb": 7655.7890625,
+      "used_mb": 1956.83203125,
+      "percent": 21.8
+    },
+    {
+      "timestamp": 1751338159.9444284,
+      "total_mb": 9794.21484375,
+      "available_mb": 7655.7890625,
+      "used_mb": 1956.83203125,
+      "percent": 21.8
+    },
+    {
+      "timestamp": 1751338160.9458654,
+      "total_mb": 9794.21484375,
+      "available_mb": 7652.83984375,
+      "used_mb": 1959.78125,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338161.9479244,
+      "total_mb": 9794.21484375,
+      "available_mb": 7651.01171875,
+      "used_mb": 1961.609375,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338162.9501595,
+      "total_mb": 9794.21484375,
+      "available_mb": 7649.41015625,
+      "used_mb": 1963.203125,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338163.951444,
+      "total_mb": 9794.21484375,
+      "available_mb": 7647.33203125,
+      "used_mb": 1965.2890625,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338164.9528596,
+      "total_mb": 9794.21484375,
+      "available_mb": 7645.33984375,
+      "used_mb": 1967.28125,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338165.9541674,
+      "total_mb": 9794.21484375,
+      "available_mb": 7645.11328125,
+      "used_mb": 1967.51171875,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338166.9556122,
+      "total_mb": 9794.21484375,
+      "available_mb": 7647.87109375,
+      "used_mb": 1964.75390625,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338167.957315,
+      "total_mb": 9794.21484375,
+      "available_mb": 7647.91015625,
+      "used_mb": 1964.70703125,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338168.9581337,
+      "total_mb": 9794.21484375,
+      "available_mb": 7645.9453125,
+      "used_mb": 1966.671875,
+      "percent": 21.9
+    },
+    {
+      "timestamp": 1751338169.9602292,
+      "total_mb": 9794.21484375,
+      "available_mb": 7645.9375,
+      "used_mb": 1966.6875,
+      "percent": 21.9
+    }
+  ],
+  "network_samples": [
+    {
+      "timestamp": 1751338150.9318833,
+      "bytes_sent": 298245899,
+      "bytes_recv": 312801861,
+      "packets_sent": 235893,
+      "packets_recv": 248205
+    },
+    {
+      "timestamp": 1751338151.9326024,
+      "bytes_sent": 298249208,
+      "bytes_recv": 312805170,
+      "packets_sent": 235911,
+      "packets_recv": 248223
+    },
+    {
+      "timestamp": 1751338152.9342284,
+      "bytes_sent": 298252212,
+      "bytes_recv": 312808174,
+      "packets_sent": 235933,
+      "packets_recv": 248245
+    },
+    {
+      "timestamp": 1751338153.9361992,
+      "bytes_sent": 298252581,
+      "bytes_recv": 312808543,
+      "packets_sent": 235939,
+      "packets_recv": 248251
+    },
+    {
+      "timestamp": 1751338154.9380744,
+      "bytes_sent": 298252860,
+      "bytes_recv": 312808822,
+      "packets_sent": 235944,
+      "packets_recv": 248256
+    },
+    {
+      "timestamp": 1751338155.9407153,
+      "bytes_sent": 298281562,
+      "bytes_recv": 312837524,
+      "packets_sent": 235952,
+      "packets_recv": 248264
+    },
+    {
+      "timestamp": 1751338156.9421227,
+      "bytes_sent": 298419945,
+      "bytes_recv": 312975907,
+      "packets_sent": 236007,
+      "packets_recv": 248319
+    },
+    {
+      "timestamp": 1751338157.9435134,
+      "bytes_sent": 298419945,
+      "bytes_recv": 312975907,
+      "packets_sent": 236007,
+      "packets_recv": 248319
+    },
+    {
+      "timestamp": 1751338158.9438632,
+      "bytes_sent": 298421615,
+      "bytes_recv": 312976960,
+      "packets_sent": 236020,
+      "packets_recv": 248330
+    },
+    {
+      "timestamp": 1751338159.9451826,
+      "bytes_sent": 298427472,
+      "bytes_recv": 312982294,
+      "packets_sent": 236060,
+      "packets_recv": 248369
+    },
+    {
+      "timestamp": 1751338160.9461212,
+      "bytes_sent": 298432742,
+      "bytes_recv": 312990514,
+      "packets_sent": 236077,
+      "packets_recv": 248387
+    },
+    {
+      "timestamp": 1751338161.9484239,
+      "bytes_sent": 298603616,
+      "bytes_recv": 313161454,
+      "packets_sent": 236116,
+      "packets_recv": 248427
+    },
+    {
+      "timestamp": 1751338162.9516945,
+      "bytes_sent": 298714022,
+      "bytes_recv": 313271860,
+      "packets_sent": 236134,
+      "packets_recv": 248445
+    },
+    {
+      "timestamp": 1751338163.9531934,
+      "bytes_sent": 298714585,
+      "bytes_recv": 313272423,
+      "packets_sent": 236143,
+      "packets_recv": 248454
+    },
+    {
+      "timestamp": 1751338164.9544804,
+      "bytes_sent": 298725222,
+      "bytes_recv": 313281920,
+      "packets_sent": 236188,
+      "packets_recv": 248496
+    },
+    {
+      "timestamp": 1751338165.956747,
+      "bytes_sent": 298744564,
+      "bytes_recv": 313304212,
+      "packets_sent": 236285,
+      "packets_recv": 248594
+    },
+    {
+      "timestamp": 1751338166.9580982,
+      "bytes_sent": 298751331,
+      "bytes_recv": 313311045,
+      "packets_sent": 236326,
+      "packets_recv": 248636
+    },
+    {
+      "timestamp": 1751338167.960862,
+      "bytes_sent": 298751331,
+      "bytes_recv": 313311045,
+      "packets_sent": 236326,
+      "packets_recv": 248636
+    },
+    {
+      "timestamp": 1751338168.9634745,
+      "bytes_sent": 298751926,
+      "bytes_recv": 313311640,
+      "packets_sent": 236335,
+      "packets_recv": 248645
+    },
+    {
+      "timestamp": 1751338169.9640496,
+      "bytes_sent": 298752045,
+      "bytes_recv": 313311759,
+      "packets_sent": 236337,
+      "packets_recv": 248647
+    }
+  ],
+  "process_samples": [
+    {
+      "timestamp": 1751338150.93211,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338151.93453,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338152.9361935,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338153.9376562,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338154.939712,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338155.941394,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338156.9427874,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 24
+    },
+    {
+      "timestamp": 1751338157.9437246,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338158.9451597,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338159.9466162,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338160.9480903,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338161.9498632,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338162.9521348,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338163.9539633,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338164.9552016,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338165.956887,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338166.958294,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338167.9610596,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338168.9638102,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    },
+    {
+      "timestamp": 1751338169.9654086,
+      "cpu_percent": 0.0,
+      "memory_mb": 12.25,
+      "num_threads": 5,
+      "num_fds": 23
+    }
+  ]
+}
