@@ -29,10 +29,6 @@ private:
     // Client management
     std::mutex clients_mutex_;
     std::map<struct lws*, std::string> connected_clients_map_;
-    
-    // Test mode for performance testing
-    bool test_mode_ = false;
-    int simulated_clients_ = 5; // Simulate 5 clients to match 5 sensors
 
 public:
     SimpleWebSocketServer(int port = 8080) 
@@ -42,12 +38,6 @@ public:
     
     ~SimpleWebSocketServer() {
         Stop();
-    }
-    
-    void EnableTestMode(int simulated_clients = 5) {
-        test_mode_ = true;
-        simulated_clients_ = simulated_clients;
-        std::cout << "🧪 Test mode enabled with " << simulated_clients << " simulated clients" << std::endl;
     }
     
     bool Start() {
@@ -222,18 +212,7 @@ private:
     void BroadcastMessage(const std::string& message) {
         std::lock_guard<std::mutex> lock(clients_mutex_);
         
-        int client_count = connected_clients_map_.size();
-        
-        // In test mode, simulate clients if no real clients connected
-        if (test_mode_ && client_count == 0) {
-            client_count = simulated_clients_;
-            // Count messages sent to simulated clients
-            messages_sent_ += client_count;
-            return;
-        }
-        
-        // Real WebSocket clients
-        if (client_count == 0) return;
+        if (connected_clients_map_.empty()) return;
         
         // Prepare message with WebSocket framing
         size_t msg_len = message.length();
@@ -246,7 +225,7 @@ private:
         }
         
         delete[] buf;
-        messages_sent_ += client_count;
+        messages_sent_ += connected_clients_map_.size(); // Count message per client
     }
     
     void AddClient(struct lws* wsi) {
@@ -300,15 +279,7 @@ private:
         std::cout << "\n📊 Performance Results:" << std::endl;
         std::cout << "Messages sent: " << messages_sent_ << std::endl;
         std::cout << "Messages received: " << messages_received_ << std::endl;
-        
-        int client_count = connected_clients_map_.size();
-        if (test_mode_ && client_count == 0) {
-            client_count = simulated_clients_;
-            std::cout << "Connected clients: " << client_count << " (simulated)" << std::endl;
-        } else {
-            std::cout << "Connected clients: " << client_count << std::endl;
-        }
-        
+        std::cout << "Connected clients: " << connected_clients_map_.size() << std::endl;
         std::cout << "Duration: " << std::fixed << std::setprecision(2) << duration_sec << "s" << std::endl;
         std::cout << "Throughput: " << std::fixed << std::setprecision(2) << (messages_sent_ / duration_sec) << " msg/sec" << std::endl;
         
@@ -355,9 +326,6 @@ int main() {
     
     SimpleWebSocketServer server(8080);
     
-    // Enable test mode for self-contained testing
-    server.EnableTestMode(5); // Simulate 5 clients to match 5 sensors
-    
     if (!server.Start()) {
         return 1;
     }
@@ -377,4 +345,4 @@ int main() {
     
     std::cout << "✅ WebSocket-Only approach test completed!" << std::endl;
     return 0;
-}
+} 
