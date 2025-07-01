@@ -1,4 +1,4 @@
-#include "../../ThermalIsolationTracker.h"
+#include "../../thermal-monitoring/ThermalIsolationTracker.h"
 #include <iostream>
 #include <chrono>
 #include <thread>

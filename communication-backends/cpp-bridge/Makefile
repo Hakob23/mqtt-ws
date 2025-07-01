@@ -14,7 +14,7 @@ OBJ_DIR = build
 
 # Source files (exclude demo.cpp from main build)
 SOURCES = $(filter-out $(SRC_DIR)/demo.cpp, $(wildcard $(SRC_DIR)/*.cpp))
-THERMAL_SOURCES = ../../ThermalIsolationTracker.cpp
+THERMAL_SOURCES = ../../thermal-monitoring/ThermalIsolationTracker.cpp
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o) $(OBJ_DIR)/ThermalIsolationTracker.o
 
 # Target binary

@@ -12,7 +12,7 @@
 #include <libwebsockets.h>
 #include <mosquitto.h>
 #include <openssl/ssl.h>
-#include "../../ThermalIsolationTracker.h"
+#include "../../../thermal-monitoring/ThermalIsolationTracker.h"
 
 namespace mqtt_ws {
 
