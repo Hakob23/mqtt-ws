@@ -16,28 +16,20 @@ This project provides a **comprehensive comparison of 4 different communication 
 ┌─────────────────────────────────────────────────────────────┐
 │                    Thermal Monitoring Core                  │
 │             (Identical across all approaches)               │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-    ┌─────────────────┼─────────────────┐
-    │                 │                 │
-    ▼                 ▼                 ▼
-┌─────────┐    ┌─────────────┐    ┌─────────────┐
-│ MQTT    │    │ WebSocket   │    │ C++ Bridge  │    
-│ Only    │    │ Only        │    │ MQTT→WS     │    
-└─────────┘    └─────────────┘    └─────────────┘    
-                                                      
-                      │                              
-                      ▼                              
-              ┌─────────────┐                       
-              │ JS Bridge   │                       
-              │ MQTT→WS     │                       
-              └─────────────┘                       
-                      │
-                      ▼
-        ┌─────────────────────────────┐
-        │    Hardware Emulation       │
-        │  (STM32 + RPi4 + Mesh)     │
-        └─────────────────────────────┘
+└─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─┘
+      │     │     │     │     │     │     │     │     │
+      ▼     ▼     ▼     ▼     ▼     ▼     ▼     ▼     ▼
+┌─────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+│ MQTT    │ │ WebSocket   │ │ C++ Bridge  │ │ JS Bridge   │    
+│ Only    │ │ Only        │ │ MQTT→WS     │ │ MQTT→WS     │    
+└─────┬───┘ └─────┬───────┘ └─────┬───────┘ └─────┬───────┘    
+      │           │               │               │              
+      ▼           ▼               ▼               ▼              
+                           
+    ┌─────────────────────────────────────────────────────────────┐
+    │                Hardware Emulation                           │
+    │              (STM32 + RPi4)                                 │
+    └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -69,7 +61,6 @@ mqtt-ws-thermal-comparison/
 ├── hardware-emulation/          ← Identical hardware simulation
 │   ├── stm32-sensors/           ← STM32 Nucleo + sensor emulation
 │   ├── rpi4-gateways/           ← RPi4 gateway emulation
-│   ├── distributed-mesh/        ← Multi-gateway coordination
 │   └── README.md
 ├── performance-testing/         ← Benchmarking framework
 │   ├── benchmarks/              ← Performance tests
@@ -79,10 +70,6 @@ mqtt-ws-thermal-comparison/
 ├── web-interface/               ← Monitoring dashboards
 │   ├── test_client.html
 │   └── README.md
-└── docs/                        ← Documentation
-    ├── ARCHITECTURE.md
-    ├── COMPARISON_METHODOLOGY.md
-    └── DEPLOYMENT_GUIDE.md
 ```
 
 ---
