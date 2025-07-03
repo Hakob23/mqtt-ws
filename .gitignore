@@ -6,3 +6,4 @@ build
 *.log
 *.txt
 test_results*/
+!examples/
